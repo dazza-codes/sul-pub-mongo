@@ -12,6 +12,7 @@ require_relative 'sulpub_sql'
 
 require_relative 'sulpub_mongo'
 @sulpub_mongo = SulPub::MongoRepo.new
+@sulpub_mongo.repo_clean
 
 def logger
   @logger ||= begin
@@ -99,4 +100,5 @@ end
   end
 end
 
+@sulpub_mongo.repo_commit
 logger.info "Finished at: #{Time.now}"

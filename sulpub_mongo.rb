@@ -43,16 +43,10 @@ module SulPub
     end
 
     def repo_commit
-      # mongo_index_affiliations
+      publication_indexes
       puts "Stored #{publications.find.count} publications."
       puts "Stored publications to #{publications.class} at: #{publications.namespace}."
     end
-
-    # def mongo_index_affiliations
-    #   affiliations.each do |a|
-    #     publications.indexes.create_one({"affiliation.#{a}" => 1})
-    #   end
-    # end
 
     def publication_indexes
       publications.indexes.create_one({'author.lastName'  => 1})
