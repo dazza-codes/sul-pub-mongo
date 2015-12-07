@@ -28,20 +28,20 @@ def logger
     end
     log_dev.sync = true
     logger = Logger.new(log_dev, 'weekly')
-    # logger.level = @debug ? Logger::DEBUG : Logger::INFO
+    logger.level = Logger::DEBUG
     logger
   end
 end
 logger.info "Starting at: #{Time.now}"
 
-def log_error(e, pub, pub_yaml)
+def log_exception(e, pub, pub_yaml)
   msg = e.message
   msg += "\n"
   msg += e.backtrace.join("\n")
   msg += "\n"
   msg += JSON.dump(pub)
   msg += "\n"
-  msg += JSON.dump(pub_yaml)
+  msg += pub_yaml
   msg += "\n"
   logger.error msg
 end
@@ -85,7 +85,7 @@ end
     if pub_hash[:authorship].instance_of? Array
       authorship_set = pub_hash[:authorship].to_set.to_a
       if authorship_set.length != pub_hash[:authorship].length
-        binding.pry
+        logger.error "Found duplicate authorship in: #{pub[:id]}"
       end
       pub_hash[:authorship] = authorship_set.to_a
     end
@@ -95,8 +95,8 @@ end
     pub_hash['_id'] = pub[:id]
     @sulpub_mongo.publications.insert_one(pub_hash)
   rescue => e
-    log_error e, pub, pub_yaml
-    binding.pry
+    log_exception e, pub, pub_yaml
+    # binding.pry
   end
 end
 
