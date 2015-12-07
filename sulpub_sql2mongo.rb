@@ -83,7 +83,7 @@ end
 
     # check authorship for duplicates
     if pub_hash[:authorship].instance_of? Array
-      authorship_set = pub_hash[:authorship].to_set.to_a
+      authorship_set = pub_hash[:authorship].to_set
       if authorship_set.length != pub_hash[:authorship].length
         logger.error "Found duplicate authorship in: #{pub[:id]}"
       end
