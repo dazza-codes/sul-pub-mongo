@@ -60,7 +60,7 @@ module SulPub
         conf = db_conf[rails_env] || {}
         conf['host']     ||= 'localhost'
         conf['port']     ||= '3306'
-        conf['user']     ||= 'capAdmin'
+        conf['username'] ||= 'capAdmin'
         conf['password'] ||= 'capPass'
         conf['database'] ||= 'sulbib_development'
         conf['encoding'] ||= 'utf8'
