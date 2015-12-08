@@ -45,7 +45,6 @@ end
 format = "Publication:  %8d"
 progress = sprintf format, 0
 backup = "\b"*progress.length
-# @sulpub_sql.publications.limit(200).each_with_index do |pub, i|
 
 pubs = @sulpub_sql.publications
 pubs = pubs.where('LOWER(pub_hash) LIKE "%provenance: cap%"')
@@ -56,26 +55,42 @@ pubs.each_with_index do |pub, i|
   $stderr.write progress
 
   begin
-    pub_yaml = pub.delete :pub_hash
+    pub_yaml = pub[:pub_hash]
     pub_hash = YAML::load(pub_yaml)
 
-    if pub_hash[:provenance].downcase != 'cap'
+    prov = pub_hash[:provenance].dup
+    if prov.downcase != 'cap'
       # Something is wrong with the SQL filter
       binding.pry
     end
 
-    if pub_hash[:authorship].length > 1
-      authorship_ids = pub_hash[:authorship].map {|a| a[:cap_profile_id]}
+    authorship = pub_hash[:authorship].dup
+    if authorship.length > 1
+      authorship_ids = authorship.map {|a| a[:cap_profile_id]}
       authorship_set = authorship_ids.to_set
       if authorship_set.length != authorship_ids.length
-        binding.pry
-        # pub[:updated_at]
+        record = {
+          identifier: pub_hash['identifier'],
+          authorship: pub_hash['authorship'],
+          provenance: pub_hash['provenance'],
+          last_updated: pub_hash['last_updated'],
+        }
+        record_json = JSON.dump(record)
+        logger.info "Duplicate authorship cap_profile_id: #{record_json}"
+        next
       end
-      authorship_ids = pub_hash[:authorship].map {|a| a[:sul_author_id]}
+      authorship_ids = authorship.map {|a| a[:sul_author_id]}
       authorship_set = authorship_ids.to_set
       if authorship_set.length != authorship_ids.length
-        binding.pry
-        # pub[:updated_at]
+        record = {
+          identifier: pub_hash['identifier'],
+          authorship: pub_hash['authorship'],
+          provenance: pub_hash['provenance'],
+          last_updated: pub_hash['last_updated'],
+        }
+        record_json = JSON.dump(record)
+        logger.info "Duplicate authorship sul_author_id: #{record_json}"
+        next
       end
     end
 
