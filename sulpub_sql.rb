@@ -1,3 +1,4 @@
+require 'yaml'
 require 'logger'
 require 'mysql2'
 require 'sequel'
@@ -12,22 +13,12 @@ module SulPub
     attr_accessor :db
     attr_accessor :db_config
 
-    def log_model_info(m)
-      sulpub_sql_logger.info "table: #{m.table_name}, columns: #{m.columns}, pk: #{m.primary_key}"
-    end
-
     def initialize
-      @db_config = {}
-      @db_config['host']     = ENV['SULPUB_DB_HOST'] || 'localhost'
-      @db_config['port']     = ENV['SULPUB_DB_PORT'] || '3306'
-      @db_config['user']     = ENV['SULPUB_DB_USER'] || 'capAdmin'
-      @db_config['password'] = ENV['SULPUB_DB_PASS'] || 'capPass'
-      @db_config['database'] = ENV['SULPUB_DB_DATABASE'] || 'cap'
-      options = @db_config.merge({
-        :encoding => 'utf8',
-        :max_connections => 10,
+      options = db_config.merge({
+        :max_connections => db_config['pool'],
         :logger => sulpub_sql_logger
       })
+      # TODO: enable adapter options.
       @db = Sequel.mysql2(options)
       @db.extension(:pagination)
       # Ensure the connection is good on startup, raises exceptions on failure
@@ -61,6 +52,23 @@ module SulPub
 
     private
 
+    def db_config
+      @db_config ||= begin
+        db_yml = File.expand_path(File.join('.', 'config', 'database.yml'))
+        db_conf = YAML.load(File.open(db_yml).read) || {}
+        rails_env = ENV['RAILS_ENV'] || 'development'
+        conf = db_conf[rails_env] || {}
+        conf['host']     ||= 'localhost'
+        conf['port']     ||= '3306'
+        conf['user']     ||= 'capAdmin'
+        conf['password'] ||= 'capPass'
+        conf['database'] ||= 'sulbib_development'
+        conf['encoding'] ||= 'utf8'
+        conf['pool']     ||= 5
+        conf
+      end
+    end
+
     def sulpub_sql_logger
       @sulpub_sql_logger ||= begin
         begin
@@ -77,6 +85,10 @@ module SulPub
         logger.level = @debug ? Logger::DEBUG : Logger::INFO
         logger
       end
+    end
+
+    def log_model_info(m)
+      sulpub_sql_logger.info "table: #{m.table_name}, columns: #{m.columns}, pk: #{m.primary_key}"
     end
 
   end
