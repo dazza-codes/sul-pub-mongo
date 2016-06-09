@@ -36,5 +36,9 @@ Try the console, e.g.
 Run the ETL:
 
     bundle exec ./sulpub_sql2mongo.rb
-    # wait a while
-    # when done, look at the 'sulpub' db and the 'publications' collection
+
+Wait a while for a large production data ETL.  When done, look at the 'sulpub' db and the 'publications' collection in MongoDb.  Some useful query language help can be reviewed at https://docs.mongodb.com/manual/tutorial/query-documents/.  The MongoDb query language is javascript.
+
+# Scripting the pub_hash
+
+Take a look at `sulpub_sql_inspector.rb` as an example of scripting something for the Publication.pub_hash data without using MongoDb.
